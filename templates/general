@@ -1,0 +1,18 @@
+# Path to SSL certificates folder
+#
+# Certificates should be named after their respective domains with .crt and
+# .key extension
+#
+CERTIFICATES_FOLDER=
+
+# List of all domains that should be redirected to the Nextcloud container
+NEXTCLOUD_VIRTUAL_HOST=
+
+# Path to the folder of Nextcloud configuration files
+NEXTCLOUD_APP_FOLDER=
+
+# Path to the folder where Nextcloud data is stored
+NEXTCLOUD_DATA_FOLDER=
+
+# Path to the folder where Nextcloud database files are stored
+NEXTCLOUD_DB_FOLDER=

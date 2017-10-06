@@ -1,0 +1,40 @@
+version: '2'
+
+services:
+    reverse-proxy:
+        image: jwilder/nginx-proxy
+        container_name: nginx-reverse-proxy
+        ports:
+            - 80:80
+            - 443:443
+        volumes:
+            - ${CERTIFICATES_FOLDER}:/etc/nginx/certs:ro
+            - /var/run/docker.sock:/tmp/docker.sock:ro
+        depends_on:
+            - nextcloud
+        restart: always
+
+    nextcloud-db:
+        image: postgres:latest
+        container_name: nextcloud-db
+        env_file: ./.servenv/nc-db-env
+        volumes:
+            - ${NEXTCLOUD_DB_FOLDER}:/var/lib/postgresql/data
+        restart: always
+
+    nextcloud:
+        image: nextcloud:latest
+        container_name: nextcloud
+        environment:
+            - VIRTUAL_HOST=${NEXTCLOUD_VIRTUAL_HOST}
+        env_file: ./.servenv/nc-env
+        ports:
+            - 8080
+        volumes:
+            - ${NEXTCLOUD_APP_FOLDER}:/var/www/html
+            - ${NEXTCLOUD_DATA_FOLDER}:/var/www/html/data
+        links:
+            - nextcloud-db
+        depends_on:
+            - nextcloud-db
+        restart: always
