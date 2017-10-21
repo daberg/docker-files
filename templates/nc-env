@@ -1,3 +1,4 @@
-POSTGRES_DB=nextcloud
-POSTGRES_USER=nextcloud
-POSTGRES_HOST=nextcloud-db
+DB_TYPE=pgsql
+DB_NAME=nextcloud
+DB_USER=nextcloud
+DB_HOST=nextcloud-db

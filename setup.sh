@@ -9,14 +9,17 @@ echo -n "Setting up configuration files..."
 
 # Setting up .env file for docker-compose configuration
 cp ./templates/general .env
+chmod 600 .env
 
 # Setting up environment variables files for services
 mkdir -p .servenv
 cp ./templates/*env -t ./.servenv
+chmod 700 .servenv
+chmod 600 .servenv/*env
 
 PASSWD=`openssl rand -base64 24 | cut -c1-16 | sed 's/\//a/g'`
 
-echo "POSTGRES_PASSWORD=$PASSWD" >> ./.servenv/nc-env
+echo "DB_PASSWORD=$PASSWD" >> ./.servenv/nc-env
 echo "POSTGRES_PASSWORD=$PASSWD" >> ./.servenv/nc-db-env
 
 echo " done."
