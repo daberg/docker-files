@@ -2,7 +2,7 @@ version: '3'
 
 services:
     reverse-proxy:
-        image: traefik
+        image: traefik:latest
         container_name: traefik-reverse-proxy
         ports:
             - 80:80
@@ -27,12 +27,12 @@ services:
         restart: always
 
     nextcloud:
-        image: wonderfall/nextcloud
+        image: wonderfall/nextcloud:latest
         container_name: nextcloud
         env_file: ./.servenv/nc-env
         environment:
-            - UID=${NEXTCLOUD_UID}
-            - GID=${NEXTCLOUD_GID}
+            - UID=$NEXTCLOUD_UID
+            - GID=$NEXTCLOUD_GID
         expose:
             - 8888
         labels:
@@ -53,6 +53,20 @@ services:
             - frontend
             - backend
         restart: always
+
+    samba:
+        image: dperson/samba:latest
+        container_name: samba
+        environment:
+            - USERID=$SAMBA_UID
+            - USERGROUP=$SAMBA_GID
+            - WORKGROUP=WORKGROUP
+        ports:
+            - 139:139
+            - 445:445
+        volumes:
+            - ${SAMBA_SHARES_FOLDER}:/shares
+        command: ${SAMBA_COMMAND}
 
 networks:
     frontend:

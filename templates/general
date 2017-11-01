@@ -1,12 +1,13 @@
-# Docker compose project name. Needed by Traefik to attach to frontend network.
+# Docker compose project name
+# Needed by Traefik to attach to frontend network
 COMPOSE_PROJECT_NAME=
 
-# Path to SSL certificates folder. It must contain a certificate.crt and a
-# certificate.key file.
+# Path to SSL certificates folder
+# It must contain a certificate.crt and a certificate.key file
 CERTIFICATES_FOLDER=
 
 # List of all domains that should be redirected to the Nextcloud container
-# separated by commas.
+# separated by commas
 NEXTCLOUD_VIRTUAL_HOST=
 
 # Path to the folder where Nextcloud data is stored
@@ -24,3 +25,16 @@ NEXTCLOUD_DB_FOLDER=
 # UID and GID of the Nextcloud user.
 NEXTCLOUD_UID=
 NEXTCLOUD_GID=
+
+# UID and GID of the Samba user
+SAMBA_UID=
+SAMBA_GID=
+
+# Path to the folder of Samba shares
+# It is mounted as /shares in the container
+SAMBA_SHARES_FOLDER=
+
+# Arguments to pass to the Samba entrypoint
+# A -s arg has to be passed for each share in the /shares folder
+# Documentation at https://github.com/dperson/samba/blob/master/README.md
+SAMBA_COMMAND=
