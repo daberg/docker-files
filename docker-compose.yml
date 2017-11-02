@@ -59,7 +59,7 @@ services:
         container_name: samba
         environment:
             - USERID=$SAMBA_UID
-            - USERGROUP=$SAMBA_GID
+            - GROUPID=$SAMBA_GID
             - WORKGROUP=WORKGROUP
         ports:
             - 139:139
