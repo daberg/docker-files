@@ -6,4 +6,4 @@ Configurable docker files to get various services up and running with different 
 Run setup.sh and properly configure the generated .env file
 
 ### Running
-Hopefully just docker-compose -d and be happy
+Hopefully just docker-compose up -d and be happy

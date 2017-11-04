@@ -58,8 +58,8 @@ services:
         image: dperson/samba:latest
         container_name: samba
         environment:
-            - USERID=$SAMBA_UID
-            - GROUPID=$SAMBA_GID
+            - USERID=${SAMBA_UID}
+            - GROUPID=${SAMBA_GID}
             - WORKGROUP=WORKGROUP
         ports:
             - 139:139
