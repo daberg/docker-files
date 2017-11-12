@@ -31,8 +31,8 @@ services:
         container_name: nextcloud
         env_file: ./.servenv/nc-env
         environment:
-            - UID=$NEXTCLOUD_UID
-            - GID=$NEXTCLOUD_GID
+            - UID=${NEXTCLOUD_UID}
+            - GID=${NEXTCLOUD_GID}
         expose:
             - 8888
         labels:
@@ -67,6 +67,30 @@ services:
         volumes:
             - ${SAMBA_SHARES_FOLDER}:/shares
         command: ${SAMBA_COMMAND}
+        restart: always
+
+    transmission:
+        image: dperson/transmission:latest
+        container_name: transmission
+        environment:
+            - TRUSER=${TRANSMISSION_USERNAME}
+            - TRPASSWD=${TRANSMISSION_PASSWORD}
+            - USERID=${TRANSMISSION_UID}
+            - GROUPID=${TRANSMISSION_GID}
+        expose:
+            - 9091
+        labels:
+            - traefik.enable=true
+            - traefik.docker.network=${COMPOSE_PROJECT_NAME}_frontend
+            - traefik.port=9091
+            - traefik.frontend.rule=Host:${TRANSMISSION_VIRTUAL_HOST}
+            - traefik.backend=transmission
+        networks:
+            - frontend
+        volumes:
+            - ${TRANSMISSION_INCOMPLETE_FOLDER}:/var/lib/transmission-daemon/incomplete
+            - ${TRANSMISSION_DOWNLOADED_FOLDER}:/var/lib/transmission-daemon/downloads
+        restart: always
 
 networks:
     frontend:

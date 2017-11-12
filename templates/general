@@ -38,3 +38,21 @@ SAMBA_SHARES_FOLDER=
 # A -s arg has to be passed for each share in the /shares folder
 # Documentation at https://github.com/dperson/samba/blob/master/README.md
 SAMBA_COMMAND=
+
+# UID and GID of the transmission user
+TRANSMISSION_UID=
+TRANSMISSION_GID=
+
+# Credentials for Transmission web interface
+TRANSMISSION_USERNAME=
+TRANSMISSION_PASSWORD=
+
+# List of all domains that should be redirected to the Transmission container
+# separated by commas
+TRANSMISSION_VIRTUAL_HOST=
+
+# Path to the folder where Transmission incomplete downloads are stored
+TRANSMISSION_INCOMPLETE_FOLDER=
+
+# Path to the folder where Transmission completed downloads are stored
+TRANSMISSION_DOWNLOADED_FOLDER=
