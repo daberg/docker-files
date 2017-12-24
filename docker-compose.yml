@@ -17,7 +17,7 @@ services:
         restart: unless-stopped
 
     nextcloud-db:
-        image: postgres:latest
+        image: postgres:9-alpine
         container_name: nextcloud-db
         env_file: ./.servenv/nc-db-env
         volumes:
@@ -29,7 +29,6 @@ services:
     nextcloud:
         image: wonderfall/nextcloud:latest
         container_name: nextcloud
-        env_file: ./.servenv/nc-env
         environment:
             - UID=${NEXTCLOUD_UID}
             - GID=${NEXTCLOUD_GID}
