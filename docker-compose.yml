@@ -29,6 +29,7 @@ services:
     nextcloud:
         image: wonderfall/nextcloud:latest
         container_name: nextcloud
+        env_file: ./.servenv/nc-env
         environment:
             - UID=${NEXTCLOUD_UID}
             - GID=${NEXTCLOUD_GID}
