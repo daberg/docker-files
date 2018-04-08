@@ -47,10 +47,6 @@ TRANSMISSION_GID=
 TRANSMISSION_USERNAME=
 TRANSMISSION_PASSWORD=
 
-# List of all domains that should be redirected to the Transmission container
-# separated by commas
-TRANSMISSION_VIRTUAL_HOST=
-
 # Path to the folder where Transmission incomplete downloads are stored
 TRANSMISSION_INCOMPLETE_FOLDER=
 
