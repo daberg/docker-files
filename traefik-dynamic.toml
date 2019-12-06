@@ -1,0 +1,9 @@
+[http.middlewares]
+  [http.middlewares.redirectsecure.redirectScheme]
+    scheme = "https"
+
+[tls.stores]
+  [tls.stores.default]
+    [tls.stores.default.defaultCertificate]
+      certFile = "/certificates/certificate.crt"
+      keyFile  = "/certificates/certificate.key"

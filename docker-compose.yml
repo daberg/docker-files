@@ -4,14 +4,23 @@ services:
     reverse-proxy:
         image: traefik:latest
         container_name: traefik-reverse-proxy
+        command:
+            - --providers.file.filename=traefik-dynamic.toml
+            - --providers.file.watch=true
+            - --providers.docker=true
+            - --entryPoints.web.address=:80
+            - --entryPoints.websecure.address=:443
+           #- --api.insecure=true
         ports:
             - 80:80
             - 443:443
-            - 8080:8080
+           #- 8080:8080
         volumes:
-            - ./traefik.toml:/traefik.toml
-            - ${CERTIFICATES_FOLDER}:/certificates:ro
             - /var/run/docker.sock:/var/run/docker.sock:ro
+            - ./traefik-dynamic.toml:/traefik-dynamic.toml
+            - ${CERTIFICATES_FOLDER}:/certificates:ro
+        networks:
+            - frontend
         restart: unless-stopped
 
     nextcloud-db:
@@ -20,6 +29,8 @@ services:
         env_file: ./.servenv/nc-db-env
         volumes:
             - ${NEXTCLOUD_DB_FOLDER}:/var/lib/postgresql/data
+        networks:
+            - nextcloud
         restart: unless-stopped
 
     nextcloud:
@@ -29,21 +40,32 @@ services:
         environment:
             - UID=${NEXTCLOUD_UID}
             - GID=${NEXTCLOUD_GID}
-        expose:
-            - 8888
+        ports:
+            - 8888:8888
         labels:
-            - traefik.enable=true
-            - traefik.docker.network=${COMPOSE_PROJECT_NAME}_frontend
-            - traefik.port=8888
-            - traefik.frontend.rule=Host:${NEXTCLOUD_VIRTUAL_HOST}
-            - traefik.backend=nextcloud
+            - "traefik.http.services.nextcloud.loadbalancer.server.port=8888"
+
+            - "traefik.http.middlewares.ncstrip.stripprefix.prefixes=/nextcloud"
+
+            - "traefik.http.routers.ncweb.entrypoints=web"
+            - "traefik.http.routers.ncweb.service=nextcloud"
+            - "traefik.http.routers.ncweb.rule=Host(`${NEXTCLOUD_DOMAIN}`) && PathPrefix(`/nextcloud`)"
+            - "traefik.http.routers.ncweb.middlewares=redirectsecure@file"
+
+            - "traefik.http.routers.ncwebsecure.entrypoints=websecure"
+            - "traefik.http.routers.ncwebsecure.service=nextcloud"
+            - "traefik.http.routers.ncwebsecure.rule=Host(`${NEXTCLOUD_DOMAIN}`) && PathPrefix(`/nextcloud`)"
+            - "traefik.http.routers.ncwebsecure.tls=true"
+            - "traefik.http.routers.ncwebsecure.tls.domains.main=default"
+            - "traefik.http.routers.ncwebsecure.middlewares=ncstrip"
         volumes:
             - ${NEXTCLOUD_DATA_FOLDER}:/data
             - ${NEXTCLOUD_CONFIG_FOLDER}:/config
             - ${NEXTCLOUD_APP_FOLDER}:/apps2
+        networks:
+            - nextcloud
+            - frontend
         depends_on:
-            - nextcloud-db
-        links:
             - nextcloud-db
         restart: unless-stopped
 
@@ -72,16 +94,13 @@ services:
             - GROUPID=${TRANSMISSION_GID}
         ports:
             - 9091:9091
-              #        expose:
-              #            - 9091
-              #        labels:
-              #            - traefik.enable=true
-              #            - traefik.docker.network=${COMPOSE_PROJECT_NAME}_frontend
-              #            - traefik.port=9091
-              #            - traefik.frontend.rule=Host:${TRANSMISSION_VIRTUAL_HOST}
-              #            - traefik.backend=transmission
         volumes:
             - ${TRANSMISSION_INCOMPLETE_FOLDER}:/var/lib/transmission-daemon/incomplete
             - ${TRANSMISSION_DOWNLOADED_FOLDER}:/var/lib/transmission-daemon/downloads
         restart: unless-stopped
 
+networks:
+    frontend:
+        driver: bridge
+    nextcloud:
+        driver: bridge

@@ -1,30 +1,28 @@
 # Docker compose project name
-# Needed by Traefik to attach to frontend network
 COMPOSE_PROJECT_NAME=
 
 # Path to SSL certificates folder
 # It must contain a certificate.crt and a certificate.key file
 CERTIFICATES_FOLDER=
 
-# List of all domains that should be redirected to the Nextcloud container
-# separated by commas
-NEXTCLOUD_VIRTUAL_HOST=
-
-# Path to the folder where Nextcloud data is stored
-NEXTCLOUD_DATA_FOLDER=
-
-# Path to the folder of Nextcloud configuration files
-NEXTCLOUD_CONFIG_FOLDER=
-
-# Path to the folder of Nextcloud apps files
-NEXTCLOUD_APP_FOLDER=
-
-# Path to the folder where Nextcloud database files are stored.
-NEXTCLOUD_DB_FOLDER=
-
-# UID and GID of the Nextcloud user.
+# UID and GID of the Nextcloud user
 NEXTCLOUD_UID=
 NEXTCLOUD_GID=
+
+# Domain to be redirected to the Nextcloud container
+NEXTCLOUD_DOMAIN=
+
+# Path to Nextcloud data
+NEXTCLOUD_DATA_FOLDER=
+
+# Path to Nextcloud configuration files
+NEXTCLOUD_CONFIG_FOLDER=
+
+# Path to Nextcloud apps files
+NEXTCLOUD_APP_FOLDER=
+
+# Path to Nextcloud database files
+NEXTCLOUD_DB_FOLDER=
 
 # UID and GID of the Samba user
 SAMBA_UID=
@@ -47,8 +45,8 @@ TRANSMISSION_GID=
 TRANSMISSION_USERNAME=
 TRANSMISSION_PASSWORD=
 
-# Path to the folder where Transmission incomplete downloads are stored
+# Path to Transmission incomplete downloads
 TRANSMISSION_INCOMPLETE_FOLDER=
 
-# Path to the folder where Transmission completed downloads are stored
+# Path toi Transmission completed downloads
 TRANSMISSION_DOWNLOADED_FOLDER=
