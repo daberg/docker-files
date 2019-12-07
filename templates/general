@@ -5,12 +5,11 @@ COMPOSE_PROJECT_NAME=
 # It must contain a certificate.crt and a certificate.key file
 CERTIFICATES_FOLDER=
 
-# UID and GID of the Nextcloud user
-NEXTCLOUD_UID=
-NEXTCLOUD_GID=
-
 # Domain to be redirected to the Nextcloud container
 NEXTCLOUD_DOMAIN=
+
+# Path to Nextcloud base folder
+NEXTCLOUD_BASE_FOLDER=/opt/nextcloud/base
 
 # Path to Nextcloud data
 NEXTCLOUD_DATA_FOLDER=
@@ -28,7 +27,7 @@ NEXTCLOUD_DB_FOLDER=
 SAMBA_UID=
 SAMBA_GID=
 
-# Path to the folder of Samba shares
+# Path to Samba shares
 # It is mounted as /shares in the container
 SAMBA_SHARES_FOLDER=
 
@@ -48,5 +47,5 @@ TRANSMISSION_PASSWORD=
 # Path to Transmission incomplete downloads
 TRANSMISSION_INCOMPLETE_FOLDER=
 
-# Path toi Transmission completed downloads
+# Path to Transmission completed downloads
 TRANSMISSION_DOWNLOADED_FOLDER=
