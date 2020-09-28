@@ -5,31 +5,58 @@ COMPOSE_PROJECT_NAME=
 # It must contain a certificate.crt and a certificate.key file
 CERTIFICATES_FOLDER=
 
+# Path to Let's Encrypt folder
+LETSENCRYPT_FOLDER=
+
+# Caddy website root folder
+CADDY_ROOT=
+
+# Caddy data folder
+CADDY_DATA=
+
+# Caddy config folder
+CADDY_CONFIG=
+
+# Domain to be redirected to the Caddy container
+CADDY_DOMAIN=
+
+# Gitea data folder
+GITEA_DATA=
+
+# Domain to be ridirected to the Gitea container
+GITEA_DOMAIN=
+
+# Root URL for the Gitea website
+GITEA_URL=
+
+# Gitea website custom title
+GITEA_NAME=
+
 # Domain to be redirected to the Nextcloud container
 NEXTCLOUD_DOMAIN=
 
-# Path to Nextcloud base folder
-NEXTCLOUD_BASE_FOLDER=/opt/nextcloud/base
+# Nextcloud base folder
+NEXTCLOUD_BASE=
 
-# Path to Nextcloud data
-NEXTCLOUD_DATA_FOLDER=
+# Nextcloud config folder
+NEXTCLOUD_CONFIG=
 
-# Path to Nextcloud configuration files
-NEXTCLOUD_CONFIG_FOLDER=
+# Nextcloud apps' folder
+NEXTCLOUD_APP=
 
-# Path to Nextcloud apps files
-NEXTCLOUD_APP_FOLDER=
+# Nextcloud data folder
+NEXTCLOUD_DATA=
 
-# Path to Nextcloud database files
-NEXTCLOUD_DB_FOLDER=
+# Nextcloud database folder
+NEXTCLOUD_DB=
 
 # UID and GID of the Samba user
 SAMBA_UID=
 SAMBA_GID=
 
-# Path to Samba shares
+# Samba shares' folder
 # It is mounted as /shares in the container
-SAMBA_SHARES_FOLDER=
+SAMBA_SHARES=
 
 # Arguments to pass to the Samba entrypoint
 # A -s arg has to be passed for each share in the /shares folder
@@ -44,8 +71,8 @@ TRANSMISSION_GID=
 TRANSMISSION_USERNAME=
 TRANSMISSION_PASSWORD=
 
-# Path to Transmission incomplete downloads
-TRANSMISSION_INCOMPLETE_FOLDER=
+# Transmission incomplete downloads' folder
+TRANSMISSION_INCOMPLETE=
 
-# Path to Transmission completed downloads
-TRANSMISSION_DOWNLOADED_FOLDER=
+# Transmission completed downloads' folder
+TRANSMISSION_DOWNLOADED=

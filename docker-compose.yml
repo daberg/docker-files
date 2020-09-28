@@ -1,26 +1,108 @@
+
 version: '3'
 
 services:
     reverse-proxy:
         image: traefik:latest
-        container_name: traefik-reverse-proxy
+        container_name: reverse-proxy
         command:
             - --providers.file.filename=traefik-dynamic.toml
             - --providers.file.watch=true
             - --providers.docker=true
+            - --providers.docker.exposedByDefault=false
+            - --providers.docker.network=${COMPOSE_PROJECT_NAME}_frontend
+
             - --entryPoints.web.address=:80
             - --entryPoints.websecure.address=:443
-            #- --api.insecure=true
+
+            - --log.level=INFO
+            - --accesslog=true
+
+            - "--certificatesresolvers.acmeresolver.acme.tlschallenge=true"
+            - "--certificatesresolvers.acmeresolver.acme.email=davide.bergamaschi@protonmail.com"
+            - "--certificatesresolvers.acmeresolver.acme.storage=/letsencrypt/acme.json"
+
+            # Uncomment to expose dashboard
+            # - --api.insecure=true
         ports:
             - 80:80
             - 443:443
-            #- 8080:8080
+
+            # Uncomment to expose dashboard
+            # - 8080:8080
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock:ro
             - ./traefik-dynamic.toml:/traefik-dynamic.toml
+            - ${LETSENCRYPT_FOLDER}:/letsencrypt
             - ${CERTIFICATES_FOLDER}:/certificates:ro
+            - /etc/localtime:/etc/localtime:ro
         networks:
             - frontend
+        restart: unless-stopped
+
+    caddy:
+        image: caddy:latest
+        container_name: caddy
+        user: 986:986
+        ports:
+            - 9080:8080
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile:ro
+            - ${CADDY_ROOT}:/static:ro
+            - ${CADDY_DATA}:/data
+            - ${CADDY_CONFIG}:/config
+            - /etc/localtime:/etc/localtime:ro
+        labels:
+            - "traefik.enable=true"
+
+            - "traefik.http.services.caddy.loadbalancer.server.port=8080"
+
+            - "traefik.http.routers.caddy.entrypoints=web"
+            - "traefik.http.routers.caddy.service=caddy"
+            - "traefik.http.routers.caddy.rule=Host(`${CADDY_DOMAIN}`)"
+
+            - "traefik.http.routers.caddysecure.entrypoints=websecure"
+            - "traefik.http.routers.caddysecure.service=caddy"
+            - "traefik.http.routers.caddysecure.rule=Host(`${CADDY_DOMAIN}`)"
+            - "traefik.http.routers.caddysecure.tls=true"
+            - "traefik.http.routers.caddysecure.tls.certresolver=acmeresolver"
+        networks:
+            - frontend
+        restart: unless-stopped
+
+    gitea:
+        image: gitea/gitea:latest
+        container_name: gitea
+        ports:
+            - 8300:3000
+        volumes:
+            - ${GITEA_DATA}:/data
+            - /etc/localtime:/etc/localtime:ro
+        networks:
+            - frontend
+        environment:
+            - DISABLE_REGISTRATION=true
+            - DOMAIN=${GITEA_DOMAIN}
+            - SSH_DOMAIN=${GITEA_DOMAIN}
+            - ROOT_URL=${GITEA_URL}
+            - RUN_MODE=prod
+            - APP_NAME=${GITEA_NAME}
+            - USER_ID=995
+            - USER_GID=994
+        labels:
+            - "traefik.enable=true"
+
+            - "traefik.http.services.gitea.loadbalancer.server.port=3000"
+
+            - "traefik.http.routers.gitea.entrypoints=web"
+            - "traefik.http.routers.gitea.service=gitea"
+            - "traefik.http.routers.gitea.rule=Host(`${GITEA_DOMAIN}`)"
+
+            - "traefik.http.routers.giteasecure.entrypoints=websecure"
+            - "traefik.http.routers.giteasecure.service=gitea"
+            - "traefik.http.routers.giteasecure.rule=Host(`${GITEA_DOMAIN}`)"
+            - "traefik.http.routers.giteasecure.tls=true"
+            - "traefik.http.routers.giteasecure.tls.certresolver=acmeresolver"
         restart: unless-stopped
 
     nextcloud-db:
@@ -28,7 +110,8 @@ services:
         container_name: nextcloud-db
         env_file: ./.servenv/nc-db-env
         volumes:
-            - ${NEXTCLOUD_DB_FOLDER}:/var/lib/postgresql/data
+            - ${NEXTCLOUD_DB}:/var/lib/postgresql/data
+            - /etc/localtime:/etc/localtime:ro
         networks:
             - nextcloud
         restart: unless-stopped
@@ -40,6 +123,8 @@ services:
         ports:
             - 7000:80
         labels:
+            - "traefik.enable=true"
+
             - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
 
             - "traefik.http.middlewares.ncstrip.stripprefix.prefixes=/nextcloud"
@@ -56,10 +141,11 @@ services:
             - "traefik.http.routers.ncwebsecure.tls.domains.main=default"
             - "traefik.http.routers.ncwebsecure.middlewares=ncstrip"
         volumes:
-            - ${NEXTCLOUD_BASE_FOLDER}:/var/www/html 
-            - ${NEXTCLOUD_APP_FOLDER}:/var/www/html/custom_apps 
-            - ${NEXTCLOUD_CONFIG_FOLDER}:/var/www/html/config 
-            - ${NEXTCLOUD_DATA_FOLDER}:/var/www/html/data 
+            - ${NEXTCLOUD_BASE}:/var/www/html 
+            - ${NEXTCLOUD_APP}:/var/www/html/custom_apps 
+            - ${NEXTCLOUD_CONFIG}:/var/www/html/config 
+            - ${NEXTCLOUD_DATA}:/var/www/html/data 
+            - /etc/localtime:/etc/localtime:ro
         networks:
             - nextcloud
             - frontend
@@ -78,7 +164,8 @@ services:
             - 139:139
             - 445:445
         volumes:
-            - ${SAMBA_SHARES_FOLDER}:/shares
+            - ${SAMBA_SHARES}:/shares
+            - /etc/localtime:/etc/localtime:ro
         command: ${SAMBA_COMMAND}
         restart: unless-stopped
 
@@ -93,8 +180,9 @@ services:
         ports:
             - 9091:9091
         volumes:
-            - ${TRANSMISSION_INCOMPLETE_FOLDER}:/var/lib/transmission-daemon/incomplete
-            - ${TRANSMISSION_DOWNLOADED_FOLDER}:/var/lib/transmission-daemon/downloads
+            - ${TRANSMISSION_INCOMPLETE}:/var/lib/transmission-daemon/incomplete
+            - ${TRANSMISSION_DOWNLOADED}:/var/lib/transmission-daemon/downloads
+            - /etc/localtime:/etc/localtime:ro
         restart: unless-stopped
 
 networks:
