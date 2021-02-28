@@ -1,0 +1,141 @@
+version: '3'
+
+services:
+    reverse-proxy:
+        image: traefik:latest
+        container_name: reverse-proxy
+        command:
+            - --providers.file.filename=traefik-dynamic.toml
+            - --providers.file.watch=true
+            - --providers.docker=true
+            - --providers.docker.exposedByDefault=false
+            - --providers.docker.network=${COMPOSE_PROJECT_NAME}_public
+
+            - --entryPoints.web.address=:80
+            - --entryPoints.websecure.address=:443
+
+            - --log.level=INFO
+            - --accesslog=true
+
+            - "--certificatesresolvers.acmeresolver.acme.tlschallenge=true"
+            - "--certificatesresolvers.acmeresolver.acme.email=davide.bergamaschi@protonmail.com"
+            - "--certificatesresolvers.acmeresolver.acme.storage=/letsencrypt/acme.json"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - ./traefik-dynamic.toml:/traefik-dynamic.toml
+            - ${LETSENCRYPT_FOLDER}:/letsencrypt
+            - ${CERTIFICATES_FOLDER}:/certificates:ro
+            - /etc/localtime:/etc/localtime:ro
+        ports:
+            - 80:80
+            - 443:443
+        networks:
+            - public
+        restart: unless-stopped
+
+    nextcloud-db:
+        image: postgres:12-alpine
+        container_name: nextcloud-db
+        volumes:
+            - ${NEXTCLOUD_DB}:/var/lib/postgresql/data
+            - /etc/localtime:/etc/localtime:ro
+        networks:
+            - nextcloud
+        env_file: ./.servenv/nc-db-env
+        restart: unless-stopped
+
+    nextcloud:
+        image: nextcloud:latest
+        container_name: nextcloud
+        volumes:
+            - ${NEXTCLOUD_BASE}:/var/www/html 
+            - ${NEXTCLOUD_APP}:/var/www/html/custom_apps 
+            - ${NEXTCLOUD_CONFIG}:/var/www/html/config 
+            - ${NEXTCLOUD_DATA}:/var/www/html/data 
+            - /etc/localtime:/etc/localtime:ro
+        ports:
+            - 7000:80
+        networks:
+            - nextcloud
+            - public
+        env_file: ./.servenv/nc-env
+        labels:
+            - "traefik.enable=true"
+
+            - "traefik.http.services.nextcloud.loadbalancer.server.port=80"
+
+            - "traefik.http.middlewares.ncstrip.stripprefix.prefixes=/nextcloud"
+
+            - "traefik.http.routers.ncweb.entrypoints=web"
+            - "traefik.http.routers.ncweb.service=nextcloud"
+            - "traefik.http.routers.ncweb.rule=Host(`${NEXTCLOUD_DOMAIN}`) && PathPrefix(`/nextcloud`)"
+            - "traefik.http.routers.ncweb.middlewares=redirectsecure@file"
+
+            - "traefik.http.routers.ncwebsecure.entrypoints=websecure"
+            - "traefik.http.routers.ncwebsecure.service=nextcloud"
+            - "traefik.http.routers.ncwebsecure.rule=Host(`${NEXTCLOUD_DOMAIN}`) && PathPrefix(`/nextcloud`)"
+            - "traefik.http.routers.ncwebsecure.tls=true"
+            - "traefik.http.routers.ncwebsecure.tls.certresolver=acmeresolver"
+            - "traefik.http.routers.ncwebsecure.middlewares=ncstrip"
+        depends_on:
+            - nextcloud-db
+        restart: unless-stopped
+
+    samba:
+        image: dperson/samba:latest
+        container_name: samba
+        command: ${SAMBA_COMMAND}
+        volumes:
+            - ${SAMBA_SHARES}:/shares
+            - /etc/localtime:/etc/localtime:ro
+        ports:
+            - 139:139
+            - 445:445
+        networks:
+            - local
+        environment:
+            - USERID=${SAMBA_UID}
+            - GROUPID=${SAMBA_GID}
+            - WORKGROUP=WORKGROUP
+        restart: unless-stopped
+
+    transmission:
+        image: dperson/transmission:latest
+        container_name: transmission
+        volumes:
+            - ${TRANSMISSION_INCOMPLETE}:/var/lib/transmission-daemon/incomplete
+            - ${TRANSMISSION_DOWNLOADED}:/var/lib/transmission-daemon/downloads
+            - /etc/localtime:/etc/localtime:ro
+        ports:
+            - 9091:9091
+        networks:
+            - local
+        environment:
+            - TRUSER=${TRANSMISSION_USERNAME}
+            - TRPASSWD=${TRANSMISSION_PASSWORD}
+            - USERID=${TRANSMISSION_UID}
+            - GROUPID=${TRANSMISSION_GID}
+        restart: unless-stopped
+
+
+    duplicati:
+        image: duplicati/duplicati:latest
+        container_name: duplicati
+        volumes:
+            - ${DUPLICATI_DATA}:/data
+            - ${DUPLICATI_SOURCE}:/backup-source
+            - ${DUPLICATI_DEST}:/backup-dest
+            - /etc/localtime:/etc/localtime:ro
+        ports:
+            - 8200:8200
+        networks:
+            - local
+
+networks:
+    public:
+        driver: bridge
+    local:
+        driver: bridge
+    nextcloud:
+        driver: bridge
+

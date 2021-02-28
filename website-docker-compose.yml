@@ -1,0 +1,101 @@
+version: '3'
+
+services:
+    reverse-proxy:
+        image: traefik:latest
+        container_name: reverse-proxy
+        command:
+            - --providers.file.filename=traefik-dynamic.toml
+            - --providers.file.watch=true
+            - --providers.docker=true
+            - --providers.docker.exposedByDefault=false
+            - --providers.docker.network=${COMPOSE_PROJECT_NAME}_public
+            - --entryPoints.web.address=:80
+            - --entryPoints.websecure.address=:443
+            - --log.level=INFO
+            - --accesslog=true
+            - "--certificatesresolvers.acmeresolver.acme.tlschallenge=true"
+            - "--certificatesresolvers.acmeresolver.acme.email=davide.bergamaschi@protonmail.com"
+            - "--certificatesresolvers.acmeresolver.acme.storage=/letsencrypt/acme.json"
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - ./traefik-dynamic.toml:/traefik-dynamic.toml
+            - ${LETSENCRYPT_FOLDER}:/letsencrypt
+            - ${CERTIFICATES_FOLDER}:/certificates:ro
+            - /etc/localtime:/etc/localtime:ro
+        ports:
+            - 80:80
+            - 443:443
+        networks:
+            - public
+        restart: unless-stopped
+
+    caddy:
+        image: caddy:latest
+        container_name: caddy
+        user: ${CADDY_UID}:${CADDY_GID}
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile:ro
+            - ${CADDY_ROOT}:/static:ro
+            - ${CADDY_DATA}:/data
+            - ${CADDY_CONFIG}:/config
+            - /etc/localtime:/etc/localtime:ro
+        ports:
+            - 9080:8080
+        networks:
+            - public
+        labels:
+            - "traefik.enable=true"
+
+            - "traefik.http.services.caddy.loadbalancer.server.port=8080"
+
+            - "traefik.http.routers.caddy.entrypoints=web"
+            - "traefik.http.routers.caddy.service=caddy"
+            - "traefik.http.routers.caddy.rule=Host(`${CADDY_DOMAIN}`)"
+
+            - "traefik.http.routers.caddysecure.entrypoints=websecure"
+            - "traefik.http.routers.caddysecure.service=caddy"
+            - "traefik.http.routers.caddysecure.rule=Host(`${CADDY_DOMAIN}`)"
+            - "traefik.http.routers.caddysecure.tls=true"
+            - "traefik.http.routers.caddysecure.tls.certresolver=acmeresolver"
+        restart: unless-stopped
+
+    gitea:
+        image: gitea/gitea:latest
+        container_name: gitea
+        volumes:
+            - ${GITEA_DATA}:/data
+            - /etc/localtime:/etc/localtime:ro
+        ports:
+            - 8300:3000
+        networks:
+            - public
+        environment:
+            - DISABLE_REGISTRATION=true
+            - DOMAIN=${GITEA_DOMAIN}
+            - SSH_DOMAIN=${GITEA_DOMAIN}
+            - ROOT_URL=${GITEA_URL}
+            - RUN_MODE=prod
+            - APP_NAME=${GITEA_NAME}
+            - USER_ID=${GITEA_UID}
+            - USER_GID=${GITEA_GID}
+        labels:
+            - "traefik.enable=true"
+
+            - "traefik.http.services.gitea.loadbalancer.server.port=3000"
+
+            - "traefik.http.routers.gitea.entrypoints=web"
+            - "traefik.http.routers.gitea.service=gitea"
+            - "traefik.http.routers.gitea.rule=Host(`${GITEA_DOMAIN}`)"
+
+            - "traefik.http.routers.giteasecure.entrypoints=websecure"
+            - "traefik.http.routers.giteasecure.service=gitea"
+            - "traefik.http.routers.giteasecure.rule=Host(`${GITEA_DOMAIN}`)"
+            - "traefik.http.routers.giteasecure.tls=true"
+            - "traefik.http.routers.giteasecure.tls.certresolver=acmeresolver"
+        restart: unless-stopped
+
+networks:
+    public:
+        driver: bridge
+

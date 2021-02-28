@@ -20,6 +20,10 @@ CADDY_CONFIG=
 # Domain to be redirected to the Caddy container
 CADDY_DOMAIN=
 
+# UID and GID of the Caddy user
+CADDY_UID=
+CADDY_GID=
+
 # Gitea data folder
 GITEA_DATA=
 
@@ -31,6 +35,10 @@ GITEA_URL=
 
 # Gitea website custom title
 GITEA_NAME=
+
+# UID and GID of the Gitea user
+GITEA_UID=
+GITEA_GID=
 
 # Domain to be redirected to the Nextcloud container
 NEXTCLOUD_DOMAIN=
@@ -76,3 +84,9 @@ TRANSMISSION_INCOMPLETE=
 
 # Transmission completed downloads' folder
 TRANSMISSION_DOWNLOADED=
+
+# Duplicati data folder
+DUPLICATI_DATA=
+
+# Path to data to be backed up with Duplicati
+DUPLICATI_SOURCE=
