@@ -10,14 +10,14 @@ COMPOSE_PROJECT_NAME='docker-services'
 LETSENCRYPT_FOLDER='/srv/acme'
 CERTIFICATES_FOLDER='/srv/certs'
 
-CADDY_ROOT='/srv/caddy'
+CADDY_ROOT="${WEBSITE_ROOT}"
 CADDY_DATA="${CADDY_FOLDER}/data"
 CADDY_CONFIG="${CADDY_FOLDER}/config"
 CADDY_DOMAIN='daberg.info'
 
 GITEA_DATA='/srv/gitea'
 GITEA_DOMAIN='git.daberg.info'
-GITEA_URL='https://${GITEA_DOMAIN}'
+GITEA_URL="https://${GITEA_DOMAIN}"
 GITEA_NAME="daberg's gitea"
 
 #-----------------------------#
@@ -25,7 +25,7 @@ GITEA_NAME="daberg's gitea"
 function write_env {
     var=$1
     val=$(eval echo \$$1)
-    echo "${var}=${val}" >> .env
+    echo "${var}=\"${val}\"" >> .env
 }
 
 yum update -y
